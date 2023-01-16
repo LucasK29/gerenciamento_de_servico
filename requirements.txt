@@ -1,0 +1,8 @@
+boto3==1.26.34
+branca==0.6.0
+folium==0.14.0
+geopy==2.3.0
+pandas==1.5.2
+pycep_correios==5.1.0
+streamlit==1.16.0
+streamlit_folium==0.8.1

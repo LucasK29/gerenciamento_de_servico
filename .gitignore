@@ -1,0 +1,3 @@
+#ignorar arquivos do ambiente virtual
+/webapp_belux_env
+/__pycache__
