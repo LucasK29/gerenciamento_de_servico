@@ -21,7 +21,6 @@ def load_data(conn):
     dt_colaboradores, dt_servicos, dt_equipe = aux_function.load_data(conn)
     return dt_colaboradores, dt_servicos, dt_equipe
 
-@st.cache
 def aws_client():
     client = aux_function.aws_client()
     return client
