@@ -4,6 +4,7 @@ import pycep_correios
 import dao
 import boto3
 import folium_map
+import aux_function
 
 from pycep_correios import WebService
 from streamlit_folium import folium_static
@@ -16,16 +17,13 @@ def conn_db():
     return dao.connect_db()
 
 @st.cache(allow_output_mutation=True)
-def load_data():
-    dt_colaboradores = pd.read_sql_query("SELECT * FROM colaboradores", conn)
-    dt_servicos = pd.read_sql_query("SELECT * FROM servicos", conn)
-    dt_equipe = pd.read_sql_query("SELECT * FROM equipe", conn)
+def load_data(conn):
+    dt_colaboradores, dt_servicos, dt_equipe = aux_function.load_data(conn)
     return dt_colaboradores, dt_servicos, dt_equipe
 
+@st.cache
 def aws_client():
-    client = boto3.client('location',region_name='sa-east-1',
-    aws_access_key_id='AKIAYI5DEEO3POHKAHBI',
-    aws_secret_access_key='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')
+    client = aux_function.aws_client()
     return client
 
 def search_by_zipcode(zipcode:str):
@@ -51,7 +49,7 @@ with header:
 
 with servicos:
 
-    dt_colaboradores, dt_servicos, dt_equipe = load_data()    
+    dt_colaboradores, dt_servicos, dt_equipe = load_data(conn=conn)    
     
     # MERGE A ORDEM DE SERVIÇO COM A LISTA DO EXECUTORES
     merge_dt = pd.merge(left=dt_servicos,right=dt_equipe,how='inner',on='ordem_de_servico').reset_index()

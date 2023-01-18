@@ -1,7 +1,7 @@
 import sqlite3
 
 def connect_db():
-    conn = sqlite3.connect('./data_base/belux.db',check_same_thread=False)
+    conn = sqlite3.connect('./data_base/demo.db',check_same_thread=False)
     return conn
 
 def create_table(table_name, conn):

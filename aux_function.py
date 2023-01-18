@@ -7,8 +7,9 @@ from pycep_correios import WebService
 
 def aws_client():
 
-    with open('access_key.json','wb') as json_file:
+    with open('access_key.json','r') as json_file:
         key = json.load(json_file)
+        print(key)
 
     client = boto3.client('location',region_name='sa-east-1',
     aws_access_key_id=key['aws_access_key_id'],
