@@ -1,15 +1,18 @@
 import streamlit as st
 import dao
 import pandas as pd
-import aux_function
+import aux_function as af
 
-conn = dao.connect_db()
+def connect_db():
+    conn = dao.connect_db()
+    return conn
 
-@st.cache(allow_output_mutation=True)
+@st.experimental_memo
 def load_data():
-    return aux_function.load_data(conn=conn)
+    conn = connect_db()
+    return af.load_data(conn=conn)
 
-aux_function.aws_client()
+af.aws_client()
 
 dt_colaboradores, dt_servicos, dt_equipe = load_data()
 
@@ -43,8 +46,8 @@ with edit_line:
                 b1 = st.button('BUSCAR') 
                 
                 if b1:
-                    info = aux_function.search_by_zipcode(cep)
-                else: info = aux_function.search_by_zipcode(cep)
+                    info = af.search_by_zipcode(cep)
+                else: info = af.search_by_zipcode(cep)
 
                 uf = st.text_input(label='Estado',max_chars=15,value= info['uf'])
                 cidade = st.text_input(label='Cidade',max_chars=15, value= info['cidade'])
@@ -61,29 +64,34 @@ with edit_line:
         if st.button(label='Atualizar'):
 
             if col_1 in ['encarregado','oficial','ajudante']:
-                dao.update_row('equipe',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=conn)
-                st.success('Atualizado com Sucesso!')    
+                dao.update_row('equipe',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=connect_db())
+                st.success('Atualizado com Sucesso!')
+                af.clear_rerun()    
             elif col_1 in ['ordem_de_servico','cliente']:
-                dao.update_row('servicos',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=conn)
-                st.success('Atualizado com Sucesso!') 
+                dao.update_row('servicos',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=connect_db())
+                st.success('Atualizado com Sucesso!')
+                af.clear_rerun() 
             elif col_1 == 'endereco':
-                client = aux_function.aws_clientaws_client()
+                client = af.aws_clientaws_client()
                 result = client.search_place_index_for_text(IndexName='geolocalizacao-2', Text=val_1)
 
                 lat = result.get('Results')[0]['Place']['Geometry']['Point'][1]
                 lon = result.get('Results')[0]['Place']['Geometry']['Point'][0]
 
-                dao.update_row('servicos',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=conn)
-                dao.update_row('servicos',col='lat', val1=lat, key='ordem_de_servico',val2=int(os),conn=conn)
-                dao.update_row('servicos',col='long', val1=lon, key='ordem_de_servico',val2=int(os),conn=conn)
+                dao.update_row('servicos',col=f'{col_1}', val1=f'{val_1}', key='ordem_de_servico',val2=int(os),conn=connect_db())
+                dao.update_row('servicos',col='lat', val1=lat, key='ordem_de_servico',val2=int(os),conn=connect_db())
+                dao.update_row('servicos',col='long', val1=lon, key='ordem_de_servico',val2=int(os),conn=connect_db())
                 st.success('Atualizado com Sucesso!')
+                af.clear_rerun()
     
     with st.expander('DELETAR'):
-        os_del = st.text_input(label='Insira o ID do colaborador', key='os_del')
+        os_del = st.text_input(label='Insira a Ordem de Serviço', key='os_del')
         if st.button(label='Deletar',key='os_del_b'):
-            dao.delete_data('servicos',key='ordem_de_servico',val=int(os_del),conn=conn)
-            dao.delete_data('equipe',key='ordem_de_servico',val=int(os_del),conn=conn)
+            dao.delete_data('servicos',key='ordem_de_servico',val=int(os_del),conn=connect_db())
+            dao.delete_data('equipe',key='ordem_de_servico',val=int(os_del),conn=connect_db())
+            st.experimental_memo.clear()
             st.success('Colaborador Deletado!!')
+            af.clear_rerun()
 
 with edit_colaborador:
     st.header('COLABORADORES')
@@ -95,8 +103,9 @@ with edit_colaborador:
         funcao = st.selectbox(label='Insira o cargo',options=dt_colaboradores['funcao'].unique())
         if st.button(label='Gravar'):
             novo_dict = {'nome':nome,'funcao':funcao}    
-            dao.insert_data('colaboradores',novo_dict,conn)
+            dao.insert_data('colaboradores',novo_dict,connect_db())
             st.success('Colaborador gravado com sucesso!!')
+            af.clear_rerun()
 
     with st.expander('ALTERAR'):
         id_alt = st.text_input(label='Insira o ID do colaborador', key='id_alt')
@@ -107,14 +116,16 @@ with edit_colaborador:
         else: val1 = st.text_input('Digite')
         
         if st.button(label='Alterar'):
-            dao.update_row('colaboradores',col=f'{col}', val1=f'{val1}', key='id',val2=int(id_alt),conn=conn)
+            dao.update_row('colaboradores',col=f'{col}', val1=f'{val1}', key='id',val2=int(id_alt),conn=connect_db())
             st.success('Colaborador Deletado!!')
-    
+            af.clear_rerun()
+
     with st.expander('DELETAR'):
         id_del = st.text_input(label='Insira o ID do colaborador', key='id_del')
         if st.button(label='Deletar', key='id_del_b'):
-            dao.delete_data('colaboradores',key='id',val=int(id_del),conn=conn)
+            dao.delete_data('colaboradores',key='id',val=int(id_del),conn=connect_db())
             st.success('Colaborador Deletado!!')
+            af.clear_rerun()
 
     
 

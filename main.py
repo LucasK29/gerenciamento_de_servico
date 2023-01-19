@@ -4,25 +4,26 @@ import pycep_correios
 import dao
 import boto3
 import folium_map
-import aux_function
+import aux_function as af
 
 from pycep_correios import WebService
 from streamlit_folium import folium_static
 from st_aggrid import AgGrid, GridUpdateMode, AgGridTheme, DataReturnMode
 from st_aggrid.grid_options_builder import GridOptionsBuilder
 
+def connect_db():
+    conn = dao.connect_db()
+    return conn
 
-@st.cache
-def conn_db():
-    return dao.connect_db()
-
-@st.cache(allow_output_mutation=True)
-def load_data(conn):
-    dt_colaboradores, dt_servicos, dt_equipe = aux_function.load_data(conn)
+@st.experimental_memo
+def load_data():
+    conn = connect_db()
+    dt_colaboradores, dt_servicos, dt_equipe = af.load_data(conn)
+    conn.close()
     return dt_colaboradores, dt_servicos, dt_equipe
 
 def aws_client():
-    client = aux_function.aws_client()
+    client = af.aws_client()
     return client
 
 def search_by_zipcode(zipcode:str):
@@ -31,9 +32,16 @@ def search_by_zipcode(zipcode:str):
         return info
     else: return {'uf':'','cidade':'', 'bairro':'','logradouro':''}
 
-conn = conn_db()
+# hide_streamlit_style = """
+# <style>
+# #MainMenu {visibility: hidden;}
+# footer {visibility: hidden;}
+# </style>
 
-sidebar = st.sidebar.header('MENU')
+# """
+# st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+    
+sidebar = st.sidebar.header('')
 
 header =  st.container()
 
@@ -48,7 +56,7 @@ with header:
 
 with servicos:
 
-    dt_colaboradores, dt_servicos, dt_equipe = load_data(conn=conn)    
+    dt_colaboradores, dt_servicos, dt_equipe = load_data()    
     
     # MERGE A ORDEM DE SERVIÇO COM A LISTA DO EXECUTORES
     merge_dt = pd.merge(left=dt_servicos,right=dt_equipe,how='inner',on='ordem_de_servico').reset_index()
@@ -120,12 +128,15 @@ with criar_servico:
             lon = result.get('Results')[0]['Place']['Geometry']['Point'][0]
 
             dt_dict = {'ordem_de_servico':int(os),'cliente':cliente,'endereco':endereco,'lat':lat,'long':lon}
-            dao.insert_data('servicos',dt_dict,conn)
+            dao.insert_data('servicos',dt_dict,conn=connect_db())
 
             equipe = {'ordem_de_servico':int(os),'encarregado':encarregado,'oficial':oficial,'ajudante':ajudante}
-            dao.insert_data('equipe', equipe, conn)
+            dao.insert_data('equipe', equipe, conn=connect_db())
 
             st.success('serviço cadastrado!')
+            
+            af.clear_rerun()
+            
                 
 
 

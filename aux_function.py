@@ -2,6 +2,7 @@ import boto3
 import pycep_correios
 import pandas as pd
 import json
+import streamlit as st
 
 from pycep_correios import WebService
 
@@ -27,3 +28,7 @@ def load_data(conn):
     dt_servicos = pd.read_sql_query("SELECT * FROM servicos", conn)
     dt_equipe = pd.read_sql_query("SELECT * FROM equipe", conn)
     return dt_colaboradores, dt_servicos, dt_equipe
+
+def clear_rerun():
+    st.experimental_memo.clear()
+    st.experimental_rerun()

@@ -21,13 +21,16 @@ def insert_data(table_name, data_list:dict,conn):
     conn.execute("INSERT INTO {0} ({1}) VALUES ({2})"
     .format(table_name, keys, values))
     conn.commit()
+    conn.close()
 
 def delete_data(table_name,key,val,conn):
     conn.execute(f"DELETE from {table_name} where {key} = {val}")
     conn.commit()
+    conn.close()
 
 def update_row(table_name,col,val1,key,val2,conn):
     #UPDATE COMPANY SET ADDRESS = 'Texas' WHERE ID = 6;
     conn.execute(f"UPDATE {table_name} SET {col} = '{val1}' WHERE {key} = {val2}")
     conn.commit()
+    conn.close()
 
