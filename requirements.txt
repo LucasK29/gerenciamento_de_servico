@@ -6,3 +6,4 @@ pandas==1.5.2
 pycep_correios==5.1.0
 streamlit==1.16.0
 streamlit_folium==0.8.1
+streamlit-aggrid==0.3.3
